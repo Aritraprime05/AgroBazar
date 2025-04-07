@@ -1,28 +1,43 @@
 import { useState } from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
+import { 
+  LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer 
+} from "recharts";
 import { Input, Label, Select, Button, Card, CardContent } from "./ui";
 
 const cropOptions = ["Wheat", "Rice", "Corn", "Soybean"];
 const soilTypes = ["Loamy", "Clay", "Sandy", "Silty"];
 
 export default function YieldPrediction() {
-  const [crop, setCrop] = useState("Wheat");
-  const [soil, setSoil] = useState("Loamy");
-  const [rainfall, setRainfall] = useState(50);
-  const [temperature, setTemperature] = useState(25);
+  const [crop, setCrop] = useState<string>("Wheat");
+  const [soil, setSoil] = useState<string>("Loamy");
+  const [rainfall, setRainfall] = useState<number>(50);
+  const [temperature, setTemperature] = useState<number>(25);
   const [prediction, setPrediction] = useState<number | null>(null);
-  const [chartData, setChartData] = useState([]);
+  const [chartData, setChartData] = useState<{ year: number; yield: number }[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handlePredict = async () => {
-    const response = await fetch("http://localhost:5000/predict", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ crop, soil, rainfall, temperature })
-    });
-    
-    const data = await response.json();
-    setPrediction(data.yield);
-    setChartData(data.trend || []);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("http://localhost:5000/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ crop, soil, rainfall, temperature })
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch prediction");
+
+      const data = await response.json();
+      setPrediction(data.yield);
+      setChartData(data.trend || []);
+    } catch (err) {
+      setError("Prediction failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -47,7 +62,11 @@ export default function YieldPrediction() {
           <Label>Temperature (°C)</Label>
           <Input type="number" value={temperature} onChange={(e) => setTemperature(Number(e.target.value))} />
 
-          <Button onClick={handlePredict} className="mt-4">Predict Yield</Button>
+          <Button onClick={handlePredict} className="mt-4" disabled={loading}>
+            {loading ? "Predicting..." : "Predict Yield"}
+          </Button>
+
+          {error && <p className="text-red-500 mt-2">{error}</p>}
         </CardContent>
       </Card>
 

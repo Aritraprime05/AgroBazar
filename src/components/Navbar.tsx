@@ -48,6 +48,14 @@ export default function Navbar() {
               <Star className="h-5 w-5" />
               <span>Feedback</span>
             </Link>
+            <Link to="/predict" className="hover:text-yellow-300 transition-colors flex items-center space-x-1">
+              <Star className="h-5 w-5" />
+              <span>Yield Prediction</span>
+            </Link>
+            {/* <Link to="/chat" className="hover:text-yellow-300 transition-colors flex items-center space-x-1">
+              <Star className="h-5 w-5" />
+              <span>ChatBot</span>
+            </Link> */}
 
             <Link to="/cart" className="hover:text-green-200 transition-colors relative">
               <ShoppingCart className="h-5 w-5" />
